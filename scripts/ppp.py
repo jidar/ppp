@@ -1,23 +1,29 @@
 import argparse
 from pppengine import engine
 
-DATAFILE_PATH='~/.ppp'
+DATAFILE_PATH = '~/.ppp'
+
 
 def run(args, datafile):
-    
+
     if datafile.get_project_names == [] and args.command != 'new-project':
         print 'No Projects Found.'
-        print 'Add a new project using: ppp add-project <project-name> <project-diplay-name>'        
-    
+        print 'Add a new project using: ppp add-project <project-name> <project-diplay-name>'
+
     #Entry Management
     if args.command == 'new':
         entry = engine.Entry(args.project, args.ppp_type, args.text)
         datafile.append_entry(entry)
-    
+
+    if args.command == 'edit':
+        print args
+        new_entry = engine.Entry(args.project, args.ppp_type, args.text)
+        datafile.replace_entry(args.entry_id, new_entry)
+
     if args.command == 'list':
-        if args.item=='entries':
+        if args.item == 'entries':
             datafile.print_entries()
-        elif args.item=='projects':
+        elif args.item == 'projects':
             info = datafile.get_all_project_names()
             for n, dn in info:
                 print "%s (%s)" % (str(dn), str(n))
@@ -28,11 +34,11 @@ def run(args, datafile):
             print 'Entry %s deleted successfully' % str(args.entry_id)
         else:
             print 'Entry %s not deleted (not found)' % str(args.entry_id)
-    
+
     #Project Management
     if args.command == 'new-project':
         datafile.add_project_name(args.project_name, args.project_display_name)
-    
+
     if args.command == 'delete-project':
         if datafile.delete_project_name(args.project):
             print 'Project %s deleted.' % str(args.project)
@@ -47,18 +53,17 @@ def run(args, datafile):
         datafile.report_days(int(args.days), args.project_list)
         pass
 
-
     #This should always be the last thing
     engine.save_datafile(datafile, DATAFILE_PATH)
-        
+
 
 #if __name__ == '__main__':
 def main(*args, **kwargs):
     desc = 'PPP Report aggregator'
-    
+
     #Load data file
     datafile = engine.load_datafile(DATAFILE_PATH)
-    
+
     #load data from datafile
     '''@TODO: implement non-lame (eg, 'all') workaround for argparse
        bug (http://bugs.python.org/issue9625) where default, choices and nargs=*
@@ -67,7 +72,7 @@ def main(*args, **kwargs):
     projects = datafile.get_project_names()
     projects.append('all')
     ppptypes = engine.PPPTYPES
-    
+
     #Argparsers
     parser = argparse.ArgumentParser(description=desc)
     subparsers = parser.add_subparsers(help='commands', dest='command')
@@ -80,18 +85,24 @@ def main(*args, **kwargs):
 
     del_entry_parser = subparsers.add_parser('delete', help='Delete old PPP entry')
     del_entry_parser.add_argument('entry_id', metavar='entry-id', action='store', help='Project tag for entry.')
-    
+
+    edit_entry_parser = subparsers.add_parser('edit', help='Edit current PPP entry')
+    edit_entry_parser.add_argument('entry_id', metavar='entry-id', action='store', help='Project tag for entry.')
+    edit_entry_parser.add_argument('--ppp_type', metavar='--type', action='store', choices=ppptypes, help='Change entry ppp type')
+    edit_entry_parser.add_argument('--project', action='store', choices=projects, help='Change entry project')
+    edit_entry_parser.add_argument('--text', action='store', help='Change entry text')
+
     list_parser = subparsers.add_parser('list', help='List all projects or entries')
     list_parser.add_argument('item', action='store', choices=('entries', 'projects'), help='List all entries or proijects')
 
-    #Project Name Management    
+    #Project Name Management
     add_project_parser = subparsers.add_parser('new-project', help='Create new project name')
     add_project_parser.add_argument('project_name', metavar='project-name', action='store', help='Name to reference project on command line')
     add_project_parser.add_argument('project_display_name', metavar='project-display-name', action='store', help='Print name of project')
 
     del_proj_parser = subparsers.add_parser('delete-project', help='Delete specific project name if no entries are currently using it')
     del_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')        
-    
+
     #Reporting
     report_days_parser = subparsers.add_parser('report-days', help='Create a PPP report from X days ago until now')
     report_days_parser.add_argument('days', action='store', default=7, help='Days in past from today to report')

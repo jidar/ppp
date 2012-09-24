@@ -6,16 +6,17 @@ import time
 import datetime
 from uuid import uuid4
 
-PROBLEM='problem'
-PROGRESS='progress'
-PLAN='plan'
+PROBLEM = 'problem'
+PROGRESS = 'progress'
+PLAN = 'plan'
 PPPTYPES = (PROBLEM, PROGRESS, PLAN)
+
 
 #Datafile Management
 def load_datafile(datafile_path):
     datafile = None
     fh = None
-    
+
     try:
         datafile_path = os.path.expanduser(datafile_path)
     except Exception as e:
@@ -37,7 +38,7 @@ def load_datafile(datafile_path):
         fh = open(datafile_path, 'r')
     except:
         sys.stderr.write('No datafile found, starting from scratch')
-    
+
     if fh is not None:
         try:
             datafile = pickle.load(fh)
@@ -78,18 +79,18 @@ def save_datafile(datafile, datafile_path):
         except Exception as e:
             sys.stderr.write(str(e))
             sys.stderr.write('Error dumping datafile')
-        
+
         fh.close()
 
+
 class Entry(object):
-    def __init__(self, project_name, classification, text):
+    def __init__(self, project_name=None, classification=None, text=None):
         self.id = uuid4()
-        self.timestamp = time.time()
         self.datetimestamp = datetime.datetime.now()
         self.project = project_name
         self.classification = classification
         self.text = text
-        
+
     def __repr__(self):
         s = ''
         s += 'id: %s\n' % (str(self.id))
@@ -98,18 +99,20 @@ class Entry(object):
         s += 'type: %s\n' % (str(self.classification))
         s += 'text: %s\n' % (str(self.text))
         return s
-        
+
+
 class Project(object):
     def __init__(self, name, display_name):
         self.name = name
         self.display_name = display_name
+
 
 class DataFile(object):
     def __init__(self):
         self._entries = []
         self._project_names = []
 
-    #Entry Management        
+    #Entry Management
     def print_entries(self):
         if self._entries == []:
             print 'No entries listed.'
@@ -118,28 +121,50 @@ class DataFile(object):
 
     def append_entry(self, entry_object):
         self._entries.append(entry_object)
-        
+
     def delete_entry(self, entry_id):
         for e in self._entries:
             if str(e.id).lower() == str(entry_id).lower():
                 self._entries.remove(e)
                 return True
-    
+
+    def replace_entry(self, old_entry_id, new_entry, preserve_timestamp=True):
+        old_entry = None
+        for e in self._entries:
+            if str(e.id).lower() == str(old_entry_id).lower():
+                old_entry = e
+                self._entries.remove(e)
+                break
+
+        if preserve_timestamp == True:
+            new_entry.datetimestamp = old_entry.datetimestamp
+
+        if new_entry.project == None:
+            new_entry.project = old_entry.project
+
+        if new_entry.classification == None:
+            new_entry.classification = old_entry.classification
+
+        if new_entry.text == None:
+            new_entry.text = old_entry.text
+
+        self._entries.append(new_entry)
+
     #Project Name Management
     def get_all_project_names(self):
         '''returns a lis of tuples'''
         return [(p.name, p.display_name) for p in self._project_names]
-    
+
     def get_project_names(self):
         return [p.name for p in self._project_names]
-    
+
     def add_project_name(self, name, display_name):
         if str(name).lower() not in [str(pn.name).lower() for pn in self._project_names]:
             self._project_names.append(Project(name, display_name))
             return True
         else:
             return False
-    
+
     def delete_project_name(self, project_name):
         #offending_p = None
         for p in self._project_names:
@@ -148,13 +173,13 @@ class DataFile(object):
                 return True
         else:
             return False
-        
+
     def _report(self, entries, projects=None):
         #Make a list of the projects to include in the report
         req_projects = []
         if projects is not None:
             for req_pname in projects:
-                for p in self._project_names:                
+                for p in self._project_names:
                     if str(req_pname).lower() == (p.name).lower():
                         req_projects.append(p)
         else:
@@ -162,7 +187,7 @@ class DataFile(object):
 
         #Create the report on a per-project, per-type basis
         report_dict = {}
-    
+
         for p in req_projects:
             pdict = p.display_name
             pname = p.name
@@ -198,7 +223,7 @@ class DataFile(object):
                 requested_entries.append(e)
 
         self._report(requested_entries, projects)
-        
+
     def report_range(self, sy, sm, sd, ey=None, em=None, ed=None):
         start = datetime.datetime(sy, sm, sd)
         end = None
@@ -213,5 +238,5 @@ class DataFile(object):
         for e in self._entries:
             if e.datetimestamp > start and e.datetimestamp < end:
                 requested_entries.append(e)
-        
-        self._report(requested_entries, projects)                
+
+        self._report(requested_entries, projects)
