@@ -19,6 +19,9 @@ Usage
 =====
 
 PPP (Progress, problems, plans) style report aggregator.
+
+ppp --help
+
     positional arguments:
                             commands
         new                 Create new PPP entry
@@ -32,33 +35,39 @@ PPP (Progress, problems, plans) style report aggregator.
     optional arguments:
       -h, --help            show this help message and exit
 
-
 ppp new
+
     positional arguments:
+    
       project-name  Project tag for entry.
       ppp-type      PPP Type tag for entry.
       text          PPP Type tag for entry.
 
 ppp delete
+
     positional arguments:
+    
       entry-id    Project tag for entry.
 
 ppp list
+
     positional arguments:
+    
       {entries,projects}  List all entries or proijects
 
 ppp new-project
+
     positional arguments:
+    
       project-name          Name to reference project on command line
       project-display-name  Print name of project
       
 ppp delete-project
-    positional arguments:
-      {<projects><...>}
-                            Project tag to delete.
 
+    positional arguments:
+      {<projects><...>}     Project tag to delete.
 ppp report-days
+
     positional arguments:
       days          Days in past from today to report
       project-list  PPP Type tag for entry.
-
