@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "ppp",
-    version = "1.0",
+    version = "0.1",
     author = "Jose Idar",
     author_email = "joseidar@gmail.com",
     description = ("A PPP report aggregator and report builder"),
