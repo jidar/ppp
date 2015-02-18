@@ -1,5 +1,5 @@
 import argparse
-from pppengine import engine
+from ppp import engine
 
 DATAFILE_PATH = '~/.ppp'
 
@@ -7,56 +7,62 @@ DATAFILE_PATH = '~/.ppp'
 class CLI(object):
 
     @classmethod
-    def process(self, cmd, datafile, args):
-        """Processes command arguments and calls the proper function"""
+    def process(cls, cmd, datafile, args):
+        """Creates an instance of the CLI with the current datafile and args,
+        and returns the requested command method from that instance to be 
+        executed by the caller"""
 
         #for token in args
-        #replace dashes with underscores (to support -- names with - in them)
+        #replace dashes with underscores (to support names with - in them)
         cmd = cmd.replace('-', '_')
+        cli = cls(datafile, args)
+        return getattr(cli, cmd)
 
-        #Return proper function
-        return getattr(CLI, cmd, 'help')
+    def __init__(self, datafile, args):
+        self.datafile = datafile
+        self.args = args
 
-    def __init__(self):
-        pass
+    def new(self):
+        entry = engine.Entry(
+            self.args.project, self.args.ppp_type, self.args.text)
+        self.datafile.append_entry(entry)
 
-    def new(datafile, args):
-        entry = engine.Entry(args.project, args.ppp_type, args.text)
-        datafile.append_entry(entry)
+    def edit(self):
+        new_entry = engine.Entry(
+            self.args.project, self.args.ppp_type, self.args.text)
+        self.datafile.replace_entry(self.args.entry_id, new_entry)
 
-    def edit(datafile, args):
-        new_entry = engine.Entry(args.project, args.ppp_type, args.text)
-        datafile.replace_entry(args.entry_id, new_entry)
+    def list(self):
+        self.datafile.print_entries(self.args.project, self.args.ppp_type)
 
-    def list(datafile, args):
-        if args.item == 'entries':
-            datafile.print_entries()
-        elif args.item == 'projects':
-            info = datafile.get_all_project_names()
-            for n, dn in info:
-                print "%s (%s)" % (str(dn), str(n))
-
-    def delete(datafile, args):
-        r = datafile.delete_entry(args.entry_id)
+    def delete(self):
+        r = self.datafile.delete_entry(self.args.entry_id)
         if r:
-            print 'Entry %s deleted successfully' % str(args.entry_id)
+            print 'Entry %s deleted successfully' % str(self.args.entry_id)
         else:
-            print 'Entry %s not deleted (not found)' % str(args.entry_id)
+            print 'Entry %s not deleted (not found)' % str(self.args.entry_id)
 
-    def new_project(datafile, args):
-        datafile.add_project_name(args.project_name, args.project_display_name)
+    def new_project(self):
+        self.datafile.add_project_name(
+            self.args.project_name, self.args.project_display_name)
 
-    def delete_project(datafile, args):
-        if datafile.delete_project_name(args.project):
-            print 'Project %s deleted.' % str(args.project)
+    def delete_project(self):
+        if self.datafile.delete_project_name(self.args.project):
+            print 'Project %s deleted.' % str(self.args.project)
         else:
             print 'There are entries currently using this project name.\
                    Delete those entries before removing the project name'
 
-    def report_days(datafile, args):
-        if args.project_list == ['all'] or args.project_list == 'all':
-            args.project_list = datafile.get_project_names()
-        datafile.report_days(int(args.days), args.project_list)
+    def list_projects(self):
+        info = self.datafile.get_all_project_names()
+        for n, dn in info:
+            print "%s (%s)" % (str(dn), str(n))
+
+    def report_days(self):
+        if self.args.project_list == ['all'] or \
+                self.args.project_list == 'all':
+            self.args.project_list = self.datafile.get_project_names()
+        self.datafile.report_days(int(self.args.days), self.args.project_list)
 
 
 #if __name__ == '__main__':
@@ -76,11 +82,13 @@ def entry_point(*args, **kwargs):
     ppptypes = engine.PPPTYPES
 
     #Argparsers
-    parser = argparse.ArgumentParser(description=desc)
-    subparsers = parser.add_subparsers(help='commands', dest='command')
+    class MyHelpFormatter(argparse.HelpFormatter):
+        pass
+    parser = argparse.ArgumentParser(description=desc, usage=argparse.SUPPRESS)
+    subparsers = parser.add_subparsers(help='', dest='command', metavar='')
 
     #Entry Management
-    new_entry_parser = subparsers.add_parser('new', help='Create new PPP entry')
+    new_entry_parser = subparsers.add_parser('new', help='Create new PPP entry', usage=argparse.SUPPRESS)
     new_entry_parser.add_argument('project', metavar='project-name', action='store', choices=projects, help='Project tag for entry.')
     new_entry_parser.add_argument('ppp_type', metavar='ppp-type', action='store', choices=ppptypes, help='PPP Type tag for entry.')
     new_entry_parser.add_argument('text', action='store', help='PPP Type tag for entry.')
@@ -95,7 +103,8 @@ def entry_point(*args, **kwargs):
     edit_entry_parser.add_argument('--text', action='store', help='Change entry text')
 
     list_parser = subparsers.add_parser('list', help='List all projects or entries')
-    list_parser.add_argument('item', action='store', choices=('entries', 'projects'), help='List all entries or proijects')
+    list_parser.add_argument('project', metavar='project-name', action='store', choices=projects, help='Which project to list entries for.')
+    list_parser.add_argument('--ppp_type', metavar='ppp-type', action='store', choices=ppptypes, help='Which PPP Types to list for project.')
 
     #Project Name Management
     add_project_parser = subparsers.add_parser('new-project', help='Create new project name')
@@ -103,7 +112,10 @@ def entry_point(*args, **kwargs):
     add_project_parser.add_argument('project_display_name', metavar='project-display-name', action='store', help='Print name of project')
 
     del_proj_parser = subparsers.add_parser('delete-project', help='Delete specific project name if no entries are currently using it')
-    del_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')        
+    del_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')
+
+    list_proj_parser = subparsers.add_parser('list-projects', help='List all projects')
+    list_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')
 
     #Reporting
     report_days_parser = subparsers.add_parser('report-days', help='Create a PPP report from X days ago until now')
@@ -131,7 +143,7 @@ def entry_point(*args, **kwargs):
         print 'No Projects Found.'
         print 'Add a new project using: ppp add-project <project-name> <project-diplay-name>'
 
-    run(args, datafile)
+    CLI.process(args.command, datafile, args)()
 
     # This should always be run last
     engine.save_datafile(datafile, DATAFILE_PATH)

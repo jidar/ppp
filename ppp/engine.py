@@ -113,11 +113,21 @@ class DataFile(object):
         self._project_names = []
 
     #Entry Management
-    def print_entries(self):
+    def print_entries(self, project, ppptype=None):
         if self._entries == []:
             print 'No entries listed.'
         for e in self._entries:
-            print str(e)
+            if e.project == project:
+                if ppptype:
+                    if e.classification == ppptype:
+                        print str(e)
+                    else:
+                        continue
+                else:
+                    print str(e)
+            elif project == 'all':
+                print str(e)
+
 
     def append_entry(self, entry_object):
         self._entries.append(entry_object)
@@ -152,7 +162,7 @@ class DataFile(object):
 
     #Project Name Management
     def get_all_project_names(self):
-        '''returns a lis of tuples'''
+        '''returns a list of tuples'''
         return [(p.name, p.display_name) for p in self._project_names]
 
     def get_project_names(self):
