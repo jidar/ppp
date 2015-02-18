@@ -8,8 +8,10 @@ to any number of days in the past.
 
 Data is stored in a python pickle file at ```~/.ppp/datafile```
 
-First Run
-=========
+Quick-Start Usage Exmaple
+===============
+
+###First Run
 
 On first run, you should create one project to start with via:
 ```
@@ -19,6 +21,34 @@ ppp new-project <project-shortname> <project-display-name>
 You'll  use the ```project-shortname``` to reference the project on the cli,
 whereas the ```project-display-name``` is what will show up in the reports.
 (Make sure to put the project display name in quotes if it contains spaces)
+
+To create a project add a problem and progress to it, do the following:
+```
+ppp new-project myproj "My Important Project!"
+ppp new myproj problem 'This is a bad project name :('
+ppp new myproj progress 'Hey, at least I got everything setup with ppp ;)'
+ppp new myproj plan 'Come up with a better project name'
+ppp new myproj plan 'Make ppp feature request to persist the project that's being worked on!'
+```
+
+Creating reports is easy too:
+```
+ppp report-days 1 myproj
+```
+produces:
+```
+My Important Project!
+    progress
+        Hey, at least I got everything setup with ppp ;)
+
+    problem
+        This is a bad project name :(
+
+    plan
+        Come up with a better project name
+
+        Make ppp feature request to persist the project that's being worked on!
+```
 
 Usage
 =====
