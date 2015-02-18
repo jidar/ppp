@@ -115,7 +115,6 @@ def entry_point(*args, **kwargs):
     del_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')
 
     list_proj_parser = subparsers.add_parser('list-projects', help='List all projects')
-    list_proj_parser.add_argument('project', action='store', choices=projects, help='Project tag to delete.')
 
     #Reporting
     report_days_parser = subparsers.add_parser('report-days', help='Create a PPP report from X days ago until now')
