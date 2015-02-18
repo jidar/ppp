@@ -8,16 +8,16 @@ setup(
     name = "ppp",
     version = "0.1",
     author = "Jose Idar",
-    author_email = "joseidar@gmail.com",
+    author_email = "jose.idar@gmail.com",
     description = ("A PPP report aggregator and report builder"),
     license = "BSD",
     url = "https://github.com/jidar/ppp",
-    packages=['pppengine','scripts'],
+    packages=['ppp'],
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Utilities",
         "License :: BSD License",
     ],
-    entry_points = {'console_scripts':['ppp=scripts.ppp:main']}
+    entry_points = {'console_scripts':['ppp=ppp.cli:entry_point']}
 )

@@ -3,24 +3,32 @@ from pppengine import engine
 
 DATAFILE_PATH = '~/.ppp'
 
+# Commands
+class CLI(object):
 
-def run(args, datafile):
+    @classmethod
+    def process(self, cmd, datafile, args):
+        """Processes command arguments and calls the proper function"""
 
-    if datafile.get_project_names == [] and args.command != 'new-project':
-        print 'No Projects Found.'
-        print 'Add a new project using: ppp add-project <project-name> <project-diplay-name>'
+        #for token in args
+        #replace dashes with underscores (to support -- names with - in them)
+        cmd = cmd.replace('-', '_')
 
-    #Entry Management
-    if args.command == 'new':
+        #Return proper function
+        return getattr(CLI, cmd, 'help')
+
+    def __init__(self):
+        pass
+
+    def new(datafile, args):
         entry = engine.Entry(args.project, args.ppp_type, args.text)
         datafile.append_entry(entry)
 
-    if args.command == 'edit':
-        print args
+    def edit(datafile, args):
         new_entry = engine.Entry(args.project, args.ppp_type, args.text)
         datafile.replace_entry(args.entry_id, new_entry)
 
-    if args.command == 'list':
+    def list(datafile, args):
         if args.item == 'entries':
             datafile.print_entries()
         elif args.item == 'projects':
@@ -28,37 +36,31 @@ def run(args, datafile):
             for n, dn in info:
                 print "%s (%s)" % (str(dn), str(n))
 
-    if args.command == 'delete':
+    def delete(datafile, args):
         r = datafile.delete_entry(args.entry_id)
         if r:
             print 'Entry %s deleted successfully' % str(args.entry_id)
         else:
             print 'Entry %s not deleted (not found)' % str(args.entry_id)
 
-    #Project Management
-    if args.command == 'new-project':
+    def new_project(datafile, args):
         datafile.add_project_name(args.project_name, args.project_display_name)
 
-    if args.command == 'delete-project':
+    def delete_project(datafile, args):
         if datafile.delete_project_name(args.project):
             print 'Project %s deleted.' % str(args.project)
         else:
             print 'There are entries currently using this project name.\
                    Delete those entries before removing the project name'
 
-    if args.command == 'report-days':
-        print args
+    def report_days(datafile, args):
         if args.project_list == ['all'] or args.project_list == 'all':
             args.project_list = datafile.get_project_names()
         datafile.report_days(int(args.days), args.project_list)
-        pass
-
-    #This should always be the last thing
-    engine.save_datafile(datafile, DATAFILE_PATH)
 
 
 #if __name__ == '__main__':
-def main(*args, **kwargs):
+def entry_point(*args, **kwargs):
     desc = 'PPP Report aggregator'
 
     #Load data file
@@ -124,4 +126,12 @@ def main(*args, **kwargs):
     #report_date_range_parser.add_argument('project_list', metavar='project-list', nargs='*', action='store', default='all', choices=projects, help='PPP Type tag for entry.')    
 
     args = parser.parse_args()
+
+    if datafile.get_project_names == [] and args.command != 'new-project':
+        print 'No Projects Found.'
+        print 'Add a new project using: ppp add-project <project-name> <project-diplay-name>'
+
     run(args, datafile)
+
+    # This should always be run last
+    engine.save_datafile(datafile, DATAFILE_PATH)

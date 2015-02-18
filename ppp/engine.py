@@ -29,7 +29,7 @@ def load_datafile(datafile_path):
             os.mkdir(datafile_path)
     except Exception as e:
         sys.stderr.write(str(e))
-        sys.stderr.write('Error verifying existance fo datafile path for load')
+        sys.stderr.write('Error verifying existence of datafile path for load')
         sys.stderr.flush()
 
     datafile_path = os.path.join(datafile_path, 'datafile')
