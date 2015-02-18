@@ -6,25 +6,28 @@ Stores entries based on project name and entry type (problem, plan, progress.)
 Generates reports for projects (either all or specific) from current day
 to any number of days in the past.
 
-Data is stored in a python pickle file at ~/.ppp/datafile
+Data is stored in a python pickle file at ```~/.ppp/datafile```
 
 First Run
 =========
 
 On first run, you should create one project to start with via:
+```
 ppp new-project <project-shortname> <project-display-name>
-the project shortname is what you'll use to reference it on the cli,
-whereas the project-display-name is what will show up in the reports.
+```
+
+You'll  use the ```project-shortname``` to reference the project on the cli,
+whereas the ```project-display-name``` is what will show up in the reports.
 (Make sure to put the project display name in quotes if it contains spaces)
 
 Usage
 =====
 
-PPP (Progress, problems, plans) style report aggregator.
+PPP (Progress, Problems, Plans) style report aggregator.
     
     ppp --help
             positional arguments:
-                                commands
+                            
             new                 Create new PPP entry
             delete              Delete old PPP entry
             list                List all projects or entries
